@@ -1,6 +1,3 @@
-'use client';
-
-import React, { useEffect } from 'react';
 import Phaser from 'phaser';
 import map from '../assets/allSprites_default.png';
 import mapJson from '../assets/map.json';
@@ -24,7 +21,8 @@ type Control = {
   right: Phaser.Input.Keyboard.Key;
   shoot: Phaser.Input.Keyboard.Key;
 };
-class GameScene extends Phaser.Scene {
+
+export class GameScene extends Phaser.Scene {
   private players: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody[] = [];
   private bullets: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody[] = [];
   private playerKeys: Control[] = [];
@@ -160,13 +158,6 @@ class GameScene extends Phaser.Scene {
     );
     this.ammoGroup = this.physics.add.group();
 
-    this.time.addEvent({
-      delay: this.AMMO_RESPAWN_TIME, // 10 segundos
-      callback: this.generateRandomAmmo,
-      callbackScope: this,
-      loop: true,
-    });
-
     this.physics.add.collider(
       this.players,
       this.ammoGroup,
@@ -234,12 +225,12 @@ class GameScene extends Phaser.Scene {
       this.playerStates[playerIndex].remainingShots += 2;
     }
 
-    // setTimeout(this.generateRandomAmmo.bind(this), this.AMMO_RESPAWN_TIME);
+    setTimeout(this.generateRandomAmmo.bind(this), this.AMMO_RESPAWN_TIME);
   }
 
   generateRandomAmmo() {
-    const x = Phaser.Math.Between(50, 600); // Posição X aleatória
-    const y = Phaser.Math.Between(50, 600); // Posição Y aleatória
+    const x = Phaser.Math.Between(20, 630); // Posição X aleatória
+    const y = Phaser.Math.Between(20, 630); // Posição Y aleatória
 
     const ammo = this.physics.add.image(x, y, 'ammo');
 
@@ -249,6 +240,13 @@ class GameScene extends Phaser.Scene {
       ammo,
       this.playerCollectAmmo,
       undefined,
+      this
+    );
+
+    this.time.delayedCall(
+      this.AMMO_RESPAWN_TIME,
+      this.generateRandomAmmo,
+      [],
       this
     );
   }
@@ -403,39 +401,3 @@ class GameScene extends Phaser.Scene {
     });
   }
 }
-
-function GameComponent() {
-  useEffect(() => {
-    const game = new Phaser.Game({
-      type: Phaser.AUTO,
-      width: 640,
-      height: 640,
-      scene: GameScene,
-      parent: 'game-content',
-      physics: {
-        default: 'arcade',
-        arcade: {
-          gravity: { y: 0 },
-        },
-      },
-    });
-  }, []);
-
-  useEffect(() => {
-    const removerCanvas = () => {
-      const canvas = document.getElementsByTagName('canvas');
-
-      if (canvas[1]) {
-        canvas[1].remove();
-      } else {
-        console.log('Um ou ambos os elementos canvas não foram encontrados.');
-      }
-    };
-
-    removerCanvas();
-  }, []);
-
-  return <div id="game-content" />;
-}
-
-export default GameComponent;
