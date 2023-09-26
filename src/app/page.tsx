@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import Phaser from 'phaser';
+import React, { useEffect, useState } from 'react';
+import Phaser, { Game } from 'phaser';
 import map from '../assets/allSprites_default.png';
 import mapJson from '../assets/map.json';
 import playerPNG from '../assets/soldier.png';
@@ -10,8 +10,9 @@ import playerYellowPNG from '../assets/soldieryellow.png';
 import playerBluePNG from '../assets/soldierblue.png';
 import bullet from '../assets/bulletDark3_outline.png';
 import explosion from '../assets/explosion4.png';
-
 import box from '../assets/crateWood.png';
+import './globals.css';
+
 type PlayerStat = {
   remainingShots: number;
   canShoot: boolean;
@@ -31,13 +32,46 @@ class GameScene extends Phaser.Scene {
   private playerStates: PlayerStat[] = [];
   private ammoGroup!: Phaser.Physics.Arcade.Group;
   private AMMO_RESPAWN_TIME = 10000;
-  private player1AmmoText!: Phaser.GameObjects.Text;
-  private player2AmmoText!: Phaser.GameObjects.Text;
-  private player3AmmoText!: Phaser.GameObjects.Text;
-  private player4AmmoText!: Phaser.GameObjects.Text;
+  private playerNames: Phaser.GameObjects.Text[] = [];
+  private scores = [
+    {
+      player: 'Verde',
+      score: 0,
+    },
+    {
+      player: 'Vermelho',
+      score: 0,
+    },
+    {
+      player: 'Amarelo',
+      score: 0,
+    },
+    {
+      player: 'Azul',
+      score: 0,
+    },
+  ];
+  private countdownText!: Phaser.GameObjects.Text;
   constructor() {
     super('GameScene');
   }
+  getRandomPlayersSpawn(numeroDeJogadores: number): number[] {
+    const ordem: number[] = [];
+
+    // Preenche um array com os números dos jogadores
+    for (let i = 1; i <= numeroDeJogadores; i++) {
+      ordem.push(i);
+    }
+
+    // Embaralha a ordem aleatoriamente
+    for (let i = ordem.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ordem[i], ordem[j]] = [ordem[j], ordem[i]]; // Troca os elementos aleatoriamente
+    }
+
+    return ordem;
+  }
+
   preload() {
     this.load.image('tiles', map.src);
     this.load.tilemapTiledJSON('map', mapJson);
@@ -89,7 +123,7 @@ class GameScene extends Phaser.Scene {
           down: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S), // S para baixo
           left: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A), // A para esquerda
           right: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D), // D para direita
-          shoot: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ALT), // Shift para atirar
+          shoot: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TAB), // Shift para atirar
         },
         {
           up: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I), // W para cima
@@ -109,22 +143,36 @@ class GameScene extends Phaser.Scene {
         },
       ];
     }
-    for (let i = 1; i <= 4; i++) {
+    const totalPlayers = 2;
+    const getPlayersSpawn = this.getRandomPlayersSpawn(totalPlayers);
+    for (let i = 1; i <= totalPlayers; i++) {
       const spawnPoint = map.findObject(
-        'player' + i,
-        (objects) => objects.name === 'spawn' + i
+        'player' + getPlayersSpawn[i - 1],
+        (objects) => objects.name === 'spawn' + getPlayersSpawn[i - 1]
       );
       if (!spawnPoint) {
         continue;
       }
+
+      // const x = Phaser.Math.Between(50, 600); // Posição X aleatória
+      // const y = Phaser.Math.Between(50, 600); // Posição Y aleatória
+
       const player = this.physics.add.sprite(
         spawnPoint.x || 0,
         spawnPoint.y || 0,
         'player' + i
       );
-
+      // const playerName = prompt(`Jogador ${i}, por favor, insira seu nome:`);
       player.setCollideWorldBounds(true);
       player.setScale(0.25);
+
+      const playerText = this.add.text(player.x, player.y - 20, 'Muniçōes: 2', {
+        fontSize: '16px',
+        color: '#fff',
+        align: 'center',
+      });
+      this.playerNames.push(playerText);
+
       this.physics.add.collider(player, objectCollider);
       this.physics.add.collider(player, ground);
 
@@ -175,59 +223,26 @@ class GameScene extends Phaser.Scene {
       this
     );
     this.generateRandomAmmo();
-    // this.physics.add.image(
-    //   this.game.config.width / 2,
-    //   this.game.config.height / 2,
-    //   'ammo'
-    // );
 
-    this.player1AmmoText = this.add.text(3, 3, 'Jogador 1: 0 munições', {
-      font: '16px Arial',
-      color: '#ffffff',
-    });
-
-    // Texto para a contagem de munições do jogador 2 no canto superior direito
-    this.player2AmmoText = this.add.text(
-      Number(this.game.config.width) - 3,
-      3,
-      'Jogador 2: 0 munições',
+    this.countdownText = this.add.text(
+      Number(this.game.config.width) / 2,
+      Number(this.game.config.height) / 2 - 120,
+      '',
       {
-        font: '16px Arial',
+        font: '72px Arial',
         color: '#ffffff',
-        align: 'right',
+        align: 'center',
       }
     );
-    this.player2AmmoText.setOrigin(1, 0);
-
-    // Texto para a contagem de munições do jogador 3 no canto inferior esquerdo
-    this.player3AmmoText = this.add.text(
-      3,
-      Number(this.game.config.height) - 3,
-      'Jogador 3: 0 munições',
-      {
-        font: '16px Arial',
-        color: '#ffffff',
-      }
-    );
-    this.player3AmmoText.setOrigin(0, 1);
-
-    // Texto para a contagem de munições do jogador 4 no canto inferior direito
-    this.player4AmmoText = this.add.text(
-      Number(this.game.config.width) - 3,
-      Number(this.game.config.height) - 3,
-      'Jogador 4: 0 munições',
-      {
-        font: '16px Arial',
-        color: '#ffffff',
-        align: 'right',
-      }
-    );
-    this.player4AmmoText.setOrigin(1, 1);
+    this.countdownText.setOrigin(0.5);
+    this.countdownText.setVisible(false);
   }
 
   playerCollectAmmo(player: any, ammo: any) {
+    if (!player.active) {
+      return;
+    }
     ammo.destroy();
-
     // Aumente a contagem de munição do jogador em 2
     const playerIndex = this.players.indexOf(player);
     if (playerIndex !== -1) {
@@ -252,8 +267,48 @@ class GameScene extends Phaser.Scene {
       this
     );
   }
+  mostrarPlacar() {
+    const cenaPlacar = this.add.container(0, 0); // Crie uma cena ou contêiner para o placar
 
+    // Crie um fundo para o placar
+    const fundoPlacar = this.add.rectangle(
+      Number(this.game.config.width) / 2,
+      Number(this.game.config.height) / 2,
+      Number(this.game.config.width) / 2,
+      Number(this.game.config.height) / 2,
+      0x000000,
+      0.7
+    );
+    cenaPlacar.add(fundoPlacar);
+
+    // Crie um texto para exibir as pontuações
+    let textoPlacar = 'Placar:\n';
+
+    for (const item of this.scores) {
+      textoPlacar += `${item.player}: ${item.score}\n`;
+    }
+
+    const texto = this.add.text(
+      Number(this.game.config.width) / 2,
+      Number(this.game.config.height) / 2,
+      textoPlacar,
+      {
+        fontSize: '24px',
+        color: '#fff',
+        align: 'center',
+      }
+    );
+    texto.setOrigin(0.5);
+
+    cenaPlacar.add(this.countdownText);
+    cenaPlacar.add(texto);
+
+    // Agora, a cena do placar está pronta para ser mostrada
+  }
   bulletHitPlayer(bullet: any, player: any) {
+    if (!player.active) {
+      return;
+    }
     // Encontre o índice do jogador atingido
     const playerIndex = this.players.indexOf(player);
 
@@ -262,12 +317,14 @@ class GameScene extends Phaser.Scene {
       return;
     }
 
-    player.destroy();
+    player.setActive(false);
+    player.setVisible(false);
+    this.playerNames[playerIndex].setVisible(false);
     this.onBulletHit(bullet);
     // Atualize os arrays para refletir a remoção do jogador
-    this.players.splice(playerIndex, 1);
-    this.playerKeys.splice(playerIndex, 1);
-    this.playerStates.splice(playerIndex, 1);
+    // this.players.splice(playerIndex, 1);
+    // this.playerKeys.splice(playerIndex, 1);
+    // this.playerStates.splice(playerIndex, 1);
 
     const explosion = this.physics.add.sprite(player.x, player.y, 'explosion');
     bullet.destroy();
@@ -276,13 +333,47 @@ class GameScene extends Phaser.Scene {
       explosion.destroy();
     });
     // Verifique se o jogo acabou (por exemplo, se todos os jogadores foram derrotados)
-    if (this.players.length === 0) {
-      // Implemente sua lógica de final de jogo aqui
-      console.log('Jogo acabou! Todos os jogadores foram derrotados.');
+    const alive = this.players.filter((player) => player.active);
+    if (alive.length <= 1) {
+      if (alive.length === 1) {
+        const aliveIndex = this.players.indexOf(alive[0]);
+
+        this.scores[aliveIndex].score++;
+      }
+
+      this.countdownText.setVisible(true);
+      this.countdownText.setText('3');
+      this.mostrarPlacar.call(this);
+      // Conte até 3 em intervalos de 1 segundo
+      let count = 3;
+      const countdownInterval = setInterval(() => {
+        count--;
+        this.countdownText.setText(count.toString());
+
+        if (count <= 0) {
+          clearInterval(countdownInterval);
+
+          // Reinicie o jogo
+          this.restartGame();
+        }
+      }, 1000);
     }
   }
 
+  restartGame() {
+    this.scene.restart();
+    this.players = [];
+    this.bullets = [];
+    this.playerKeys = [];
+    this.playerNames = [];
+    this.playerStates = [];
+    // window.location.reload();
+  }
+
   shootBullet(player: any, playerState: PlayerStat) {
+    if (!player.active) {
+      return;
+    }
     const playerIndex = this.players.indexOf(player);
     if (playerState.remainingShots <= 0) {
       return; // Não dispare se não houver mais munições
@@ -321,7 +412,7 @@ class GameScene extends Phaser.Scene {
     player.anims.play('shoot' + Number(playerIndex + 1), true);
     this.bullets.push(bullet);
 
-    const speed = 600;
+    const speed = 500;
 
     if (direction === 'up') {
       bullet.setVelocity(0, -speed);
@@ -358,40 +449,35 @@ class GameScene extends Phaser.Scene {
   }
 
   update() {
-    this.player1AmmoText.setText(
-      `Jogador 1: ${this.playerStates[0]?.remainingShots || 0} munições`
-    );
-    this.player2AmmoText.setText(
-      `Jogador 2: ${this.playerStates[1]?.remainingShots || 0} munições`
-    );
-    this.player3AmmoText.setText(
-      `Jogador 3: ${this.playerStates[2]?.remainingShots || 0} munições`
-    );
-    this.player4AmmoText.setText(
-      `Jogador 4: ${this.playerStates[3]?.remainingShots || 0} munições`
-    );
-
     this.players.forEach((player, index) => {
       const controls = this.playerKeys[index];
       const playerState = this.playerStates[index];
 
+      this.playerNames[index].x = player.x - 30;
+      this.playerNames[index].y = player.y - 45;
+
+      this.playerNames[index].setText(
+        `Tiros: ${this.playerStates[index]?.remainingShots || 0}`
+      );
+
       player.body.setVelocity(0);
+      const playerSpeed = 150;
       if (controls?.left.isDown) {
         player.setRotation(Math.PI / 2);
         player.anims.play('move' + Number(Number(index) + 1), true);
-        player.body.setVelocityX(-100);
+        player.body.setVelocityX(-playerSpeed);
       } else if (controls?.right.isDown) {
         player.setRotation(-Math.PI / 2);
-        player.body.setVelocityX(100);
+        player.body.setVelocityX(playerSpeed);
         player.anims.play('move' + Number(Number(index) + 1), true);
       } else if (controls?.down.isDown) {
-        player.body.setVelocityY(100);
+        player.body.setVelocityY(playerSpeed);
         player.setRotation(0);
         player.anims.play('move' + Number(Number(index) + 1), true);
       } else if (controls?.up.isDown) {
         player.setRotation(Math.PI);
         player.anims.play('move' + Number(Number(index) + 1), true);
-        player.body.setVelocityY(-100);
+        player.body.setVelocityY(-playerSpeed);
       } else {
         player.anims.stop();
       }
@@ -404,22 +490,26 @@ class GameScene extends Phaser.Scene {
   }
 }
 
-function GameComponent() {
+export default function GameComponent() {
+  const [currentGame, setCurrentGame] = useState<Game | undefined>(undefined);
   useEffect(() => {
-    const game = new Phaser.Game({
-      type: Phaser.AUTO,
-      width: 640,
-      height: 640,
-      scene: GameScene,
-      parent: 'game-content',
-      physics: {
-        default: 'arcade',
-        arcade: {
-          gravity: { y: 0 },
+    if (!currentGame) {
+      const game = new Phaser.Game({
+        type: Phaser.AUTO,
+        width: 640,
+        height: 640,
+        scene: GameScene,
+        parent: 'game-content',
+        physics: {
+          default: 'arcade',
+          arcade: {
+            gravity: { y: 0 },
+          },
         },
-      },
-    });
-  }, []);
+      });
+      setCurrentGame(game);
+    }
+  }, [currentGame]);
 
   useEffect(() => {
     const removerCanvas = () => {
@@ -435,7 +525,17 @@ function GameComponent() {
     removerCanvas();
   }, []);
 
-  return <div id="game-content" />;
+  return (
+    <div
+      id="game-content"
+      style={{
+        background: '#d1aa76',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100vh',
+      }}
+    />
+  );
 }
-
-export default GameComponent;
