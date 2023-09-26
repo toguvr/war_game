@@ -16,6 +16,7 @@ import './globals.css';
 type PlayerStat = {
   remainingShots: number;
   canShoot: boolean;
+  playerName: string;
 };
 
 type Control = {
@@ -162,7 +163,6 @@ class GameScene extends Phaser.Scene {
         spawnPoint.y || 0,
         'player' + i
       );
-      // const playerName = prompt(`Jogador ${i}, por favor, insira seu nome:`);
       player.setCollideWorldBounds(true);
       player.setScale(0.25);
 
@@ -191,9 +191,13 @@ class GameScene extends Phaser.Scene {
         frameRate: 30,
         repeat: 0,
       });
+
+      // const playerName = prompt(`Jogador ${i}, por favor, insira seu nome:`);
+
       const playerState = {
         remainingShots: 2,
         canShoot: true,
+        playerName: `Tiros`,
       };
       this.playerStates.push(playerState);
       this.players.push(player);
@@ -457,7 +461,9 @@ class GameScene extends Phaser.Scene {
       this.playerNames[index].y = player.y - 45;
 
       this.playerNames[index].setText(
-        `Tiros: ${this.playerStates[index]?.remainingShots || 0}`
+        `${this.playerStates[index]?.playerName || 'Tiros'}: ${
+          this.playerStates[index]?.remainingShots || 0
+        }`
       );
 
       player.body.setVelocity(0);
@@ -493,7 +499,7 @@ class GameScene extends Phaser.Scene {
 export default function GameComponent() {
   const [currentGame, setCurrentGame] = useState<Game | undefined>(undefined);
   useEffect(() => {
-    if (!currentGame) {
+    if (!currentGame?.registry) {
       const game = new Phaser.Game({
         type: Phaser.AUTO,
         width: 640,
