@@ -193,10 +193,15 @@ class GameScene extends Phaser.Scene {
       });
 
       // const playerName = prompt(`Jogador ${i}, por favor, insira seu nome:`);
+
+      const currentPlayerName = this.names[i - 1];
+      if (currentPlayerName) {
+        this.scores[i - 1].player = currentPlayerName;
+      }
       const playerState = {
         remainingShots: 2,
         canShoot: true,
-        playerName: this.names[i - 1] || `Tiros`,
+        playerName: currentPlayerName || `Tiros`,
       };
       this.playerStates.push(playerState);
       this.players.push(player);
