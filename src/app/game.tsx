@@ -144,7 +144,7 @@ class GameScene extends Phaser.Scene {
         },
       ];
     }
-    const totalPlayers = 2;
+    const totalPlayers = 4;
     const getPlayersSpawn = this.getRandomPlayersSpawn(totalPlayers);
     for (let i = 1; i <= totalPlayers; i++) {
       const spawnPoint = map.findObject(
