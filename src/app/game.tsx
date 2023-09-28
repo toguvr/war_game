@@ -53,7 +53,7 @@ class GameScene extends Phaser.Scene {
     },
   ];
   private countdownText!: Phaser.GameObjects.Text;
-  constructor(private numPlayers: number) {
+  constructor(private numPlayers: number, private names: string[]) {
     super('GameScene');
   }
   getRandomPlayersSpawn(numeroDeJogadores: number): number[] {
@@ -193,11 +193,10 @@ class GameScene extends Phaser.Scene {
       });
 
       // const playerName = prompt(`Jogador ${i}, por favor, insira seu nome:`);
-
       const playerState = {
         remainingShots: 2,
         canShoot: true,
-        playerName: `Tiros`,
+        playerName: this.names[i - 1] || `Tiros`,
       };
       this.playerStates.push(playerState);
       this.players.push(player);
@@ -500,14 +499,23 @@ export default function GameComponent() {
   const [currentGame, setCurrentGame] = useState<Game | undefined>(undefined);
   const searchParams = useSearchParams();
 
-  const totalPlayers = searchParams.get('totalPlayers');
+  const totalPlayers = searchParams.get('players');
+  let names = searchParams.getAll('name');
+  let currentNames: string[] = [];
+  if (names) {
+    if (!Array.isArray(names)) {
+      currentNames = [names];
+    } else {
+      currentNames = names;
+    }
+  }
   useEffect(() => {
     if (!currentGame?.registry) {
       const game = new Phaser.Game({
         type: Phaser.AUTO,
         width: 640,
         height: 640,
-        scene: new GameScene(Number(totalPlayers)),
+        scene: new GameScene(Number(totalPlayers), currentNames),
         parent: 'game-content',
         physics: {
           default: 'arcade',
