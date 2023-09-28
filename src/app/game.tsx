@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import Phaser, { Game } from "phaser";
-import map from "../assets/allSprites_default.png";
-import mapJson from "../assets/map.json";
-import playerPNG from "../assets/soldier.png";
-import playerRedPNG from "../assets/soldierred.png";
-import playerYellowPNG from "../assets/soldieryellow.png";
-import playerBluePNG from "../assets/soldierblue.png";
-import bullet from "../assets/bulletDark3_outline.png";
-import explosion from "../assets/explosion4.png";
-import box from "../assets/crateWood.png";
-import "./globals.css";
+import React, { useEffect, useState } from 'react';
+import Phaser, { Game } from 'phaser';
+import map from '../assets/allSprites_default.png';
+import mapJson from '../assets/map.json';
+import playerPNG from '../assets/soldier.png';
+import playerRedPNG from '../assets/soldierred.png';
+import playerYellowPNG from '../assets/soldieryellow.png';
+import playerBluePNG from '../assets/soldierblue.png';
+import bullet from '../assets/bulletDark3_outline.png';
+import explosion from '../assets/explosion4.png';
+import box from '../assets/crateWood.png';
+import './globals.css';
 
 type PlayerStat = {
   remainingShots: number;
@@ -36,25 +36,25 @@ class GameScene extends Phaser.Scene {
   private playerNames: Phaser.GameObjects.Text[] = [];
   private scores = [
     {
-      player: "Verde",
+      player: 'Verde',
       score: 0,
     },
     {
-      player: "Vermelho",
+      player: 'Vermelho',
       score: 0,
     },
     {
-      player: "Amarelo",
+      player: 'Amarelo',
       score: 0,
     },
     {
-      player: "Azul",
+      player: 'Azul',
       score: 0,
     },
   ];
   private countdownText!: Phaser.GameObjects.Text;
   constructor() {
-    super("GameScene");
+    super('GameScene');
   }
   getRandomPlayersSpawn(numeroDeJogadores: number): number[] {
     const ordem: number[] = [];
@@ -74,34 +74,34 @@ class GameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("tiles", map.src);
-    this.load.tilemapTiledJSON("map", mapJson);
-    this.load.spritesheet("player1", playerPNG.src, {
+    this.load.image('tiles', map.src);
+    this.load.tilemapTiledJSON('map', mapJson);
+    this.load.spritesheet('player1', playerPNG.src, {
       frameWidth: 256,
       frameHeight: 256,
     });
-    this.load.spritesheet("player2", playerRedPNG.src, {
+    this.load.spritesheet('player2', playerRedPNG.src, {
       frameWidth: 256,
       frameHeight: 256,
     });
-    this.load.spritesheet("player3", playerYellowPNG.src, {
+    this.load.spritesheet('player3', playerYellowPNG.src, {
       frameWidth: 256,
       frameHeight: 256,
     });
-    this.load.spritesheet("player4", playerBluePNG.src, {
+    this.load.spritesheet('player4', playerBluePNG.src, {
       frameWidth: 256,
       frameHeight: 256,
     });
-    this.load.image("bullet", bullet.src);
-    this.load.image("ammo", box.src);
-    this.load.image("explosion", explosion.src);
+    this.load.image('bullet', bullet.src);
+    this.load.image('ammo', box.src);
+    this.load.image('explosion', explosion.src);
   }
 
   create() {
-    const map = this.make.tilemap({ key: "map" })!;
-    const tileset = map.addTilesetImage("allSprites_default", "tiles")!;
-    const ground = map.createLayer("ground", tileset!, 0, 0)!;
-    const objectCollider = map.createLayer("objectCollider", tileset!, 0, 0)!;
+    const map = this.make.tilemap({ key: 'map' })!;
+    const tileset = map.addTilesetImage('allSprites_default', 'tiles')!;
+    const ground = map.createLayer('ground', tileset!, 0, 0)!;
+    const objectCollider = map.createLayer('objectCollider', tileset!, 0, 0)!;
 
     objectCollider?.setCollisionByProperty({ collider: true });
     ground?.setCollisionByProperty({ collider: true });
@@ -148,8 +148,8 @@ class GameScene extends Phaser.Scene {
     const getPlayersSpawn = this.getRandomPlayersSpawn(totalPlayers);
     for (let i = 1; i <= totalPlayers; i++) {
       const spawnPoint = map.findObject(
-        "player" + getPlayersSpawn[i - 1],
-        (objects) => objects.name === "spawn" + getPlayersSpawn[i - 1]
+        'player' + getPlayersSpawn[i - 1],
+        (objects) => objects.name === 'spawn' + getPlayersSpawn[i - 1]
       );
       if (!spawnPoint) {
         continue;
@@ -161,15 +161,15 @@ class GameScene extends Phaser.Scene {
       const player = this.physics.add.sprite(
         spawnPoint.x || 0,
         spawnPoint.y || 0,
-        "player" + i
+        'player' + i
       );
       player.setCollideWorldBounds(true);
       player.setScale(0.25);
 
-      const playerText = this.add.text(player.x, player.y - 20, "Muniçōes: 2", {
-        fontSize: "16px",
-        color: "#fff",
-        align: "center",
+      const playerText = this.add.text(player.x, player.y - 20, 'Muniçōes: 2', {
+        fontSize: '16px',
+        color: '#fff',
+        align: 'center',
       });
       this.playerNames.push(playerText);
 
@@ -179,15 +179,15 @@ class GameScene extends Phaser.Scene {
       const animate = this.anims;
 
       animate.create({
-        key: "move" + i,
-        frames: animate.generateFrameNames("player" + i, { start: 2, end: 3 }),
+        key: 'move' + i,
+        frames: animate.generateFrameNames('player' + i, { start: 2, end: 3 }),
         frameRate: 5,
         repeat: -1,
       });
 
       animate.create({
-        key: "shoot" + i,
-        frames: animate.generateFrameNames("player" + i, { start: 1, end: 1 }),
+        key: 'shoot' + i,
+        frames: animate.generateFrameNames('player' + i, { start: 1, end: 1 }),
         frameRate: 30,
         repeat: 0,
       });
@@ -231,11 +231,11 @@ class GameScene extends Phaser.Scene {
     this.countdownText = this.add.text(
       Number(this.game.config.width) / 2,
       Number(this.game.config.height) / 2 - 120,
-      "",
+      '',
       {
-        font: "72px Arial",
-        color: "#ffffff",
-        align: "center",
+        font: '72px Arial',
+        color: '#ffffff',
+        align: 'center',
       }
     );
     this.countdownText.setOrigin(0.5);
@@ -260,7 +260,7 @@ class GameScene extends Phaser.Scene {
     const x = Phaser.Math.Between(50, 600); // Posição X aleatória
     const y = Phaser.Math.Between(50, 600); // Posição Y aleatória
 
-    const ammo = this.physics.add.image(x, y, "ammo");
+    const ammo = this.physics.add.image(x, y, 'ammo');
 
     // Configure a colisão com os jogadores
     this.physics.add.overlap(
@@ -286,7 +286,7 @@ class GameScene extends Phaser.Scene {
     cenaPlacar.add(fundoPlacar);
 
     // Crie um texto para exibir as pontuações
-    let textoPlacar = "Placar:\n";
+    let textoPlacar = 'Placar:\n';
 
     for (const item of this.scores) {
       textoPlacar += `${item.player}: ${item.score}\n`;
@@ -297,9 +297,9 @@ class GameScene extends Phaser.Scene {
       Number(this.game.config.height) / 2,
       textoPlacar,
       {
-        fontSize: "24px",
-        color: "#fff",
-        align: "center",
+        fontSize: '24px',
+        color: '#fff',
+        align: 'center',
       }
     );
     texto.setOrigin(0.5);
@@ -320,17 +320,17 @@ class GameScene extends Phaser.Scene {
     if (playerIndex === -1 || bullet.playerIndex === playerIndex) {
       return;
     }
+    const playerShoot = this.players[bullet.playerIndex];
 
+    if (!playerShoot.active) {
+      return;
+    }
     player.setActive(false);
     player.setVisible(false);
     this.playerNames[playerIndex].setVisible(false);
     this.onBulletHit(bullet);
-    // Atualize os arrays para refletir a remoção do jogador
-    // this.players.splice(playerIndex, 1);
-    // this.playerKeys.splice(playerIndex, 1);
-    // this.playerStates.splice(playerIndex, 1);
 
-    const explosion = this.physics.add.sprite(player.x, player.y, "explosion");
+    const explosion = this.physics.add.sprite(player.x, player.y, 'explosion');
     bullet.destroy();
     explosion.setScale(0.5);
     this.time.delayedCall(200, () => {
@@ -346,7 +346,7 @@ class GameScene extends Phaser.Scene {
       }
 
       this.countdownText.setVisible(true);
-      this.countdownText.setText("3");
+      this.countdownText.setText('3');
       this.mostrarPlacar.call(this);
       // Conte até 3 em intervalos de 1 segundo
       let count = 3;
@@ -389,19 +389,19 @@ class GameScene extends Phaser.Scene {
     let bulletDirectionX;
     let bulletDirectionY;
     if (player.body.rotation == 180) {
-      direction = "up";
+      direction = 'up';
       bulletDirectionX = player.x + 5;
       bulletDirectionY = player.y - 20;
     } else if (player.body.rotation == 0) {
       bulletDirectionX = player.x - 5;
       bulletDirectionY = player.y + 20;
-      direction = "down";
+      direction = 'down';
     } else if (player.body.rotation == 90) {
-      direction = "left";
+      direction = 'left';
       bulletDirectionX = player.x - 20;
       bulletDirectionY = player.y - 5;
     } else if (player.body.rotation == -90) {
-      direction = "right";
+      direction = 'right';
       bulletDirectionX = player.x + 20;
       bulletDirectionY = player.y + 5;
     }
@@ -410,24 +410,24 @@ class GameScene extends Phaser.Scene {
     const bullet = this.physics.add.sprite(
       bulletDirectionX || 0,
       bulletDirectionY || 0,
-      "bullet"
+      'bullet'
     ) as any;
     bullet.setScale(0.3);
-    player.anims.play("shoot" + Number(playerIndex + 1), true);
+    player.anims.play('shoot' + Number(playerIndex + 1), true);
     this.bullets.push(bullet);
 
     const speed = 500;
 
-    if (direction === "up") {
+    if (direction === 'up') {
       bullet.setVelocity(0, -speed);
       bullet.setRotation(0);
-    } else if (direction === "down") {
+    } else if (direction === 'down') {
       bullet.setRotation(Math.PI);
       bullet.setVelocity(0, speed);
-    } else if (direction === "left") {
+    } else if (direction === 'left') {
       bullet.setVelocity(-speed, 0);
       bullet.setRotation(-Math.PI / 2);
-    } else if (direction === "right") {
+    } else if (direction === 'right') {
       bullet.setRotation(Math.PI / 2);
       bullet.setVelocity(speed, 0);
     }
@@ -461,7 +461,7 @@ class GameScene extends Phaser.Scene {
       this.playerNames[index].y = player.y - 45;
 
       this.playerNames[index].setText(
-        `${this.playerStates[index]?.playerName || "Tiros"}: ${
+        `${this.playerStates[index]?.playerName || 'Tiros'}: ${
           this.playerStates[index]?.remainingShots || 0
         }`
       );
@@ -470,19 +470,19 @@ class GameScene extends Phaser.Scene {
       const playerSpeed = 150;
       if (controls?.left.isDown) {
         player.setRotation(Math.PI / 2);
-        player.anims.play("move" + Number(Number(index) + 1), true);
+        player.anims.play('move' + Number(Number(index) + 1), true);
         player.body.setVelocityX(-playerSpeed);
       } else if (controls?.right.isDown) {
         player.setRotation(-Math.PI / 2);
         player.body.setVelocityX(playerSpeed);
-        player.anims.play("move" + Number(Number(index) + 1), true);
+        player.anims.play('move' + Number(Number(index) + 1), true);
       } else if (controls?.down.isDown) {
         player.body.setVelocityY(playerSpeed);
         player.setRotation(0);
-        player.anims.play("move" + Number(Number(index) + 1), true);
+        player.anims.play('move' + Number(Number(index) + 1), true);
       } else if (controls?.up.isDown) {
         player.setRotation(Math.PI);
-        player.anims.play("move" + Number(Number(index) + 1), true);
+        player.anims.play('move' + Number(Number(index) + 1), true);
         player.body.setVelocityY(-playerSpeed);
       } else {
         player.anims.stop();
@@ -505,9 +505,9 @@ export default function GameComponent() {
         width: 640,
         height: 640,
         scene: GameScene,
-        parent: "game-content",
+        parent: 'game-content',
         physics: {
-          default: "arcade",
+          default: 'arcade',
           arcade: {
             gravity: { y: 0 },
           },
@@ -519,12 +519,12 @@ export default function GameComponent() {
 
   useEffect(() => {
     const removerCanvas = () => {
-      const canvas = document.getElementsByTagName("canvas");
+      const canvas = document.getElementsByTagName('canvas');
 
       if (canvas[1]) {
         canvas[1].remove();
       } else {
-        console.log("Um ou ambos os elementos canvas não foram encontrados.");
+        console.log('Um ou ambos os elementos canvas não foram encontrados.');
       }
     };
 
@@ -535,12 +535,12 @@ export default function GameComponent() {
     <div
       id="game-content"
       style={{
-        background: "#d1aa76",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        height: "100vh",
+        background: '#d1aa76',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100vh',
       }}
     />
   );
