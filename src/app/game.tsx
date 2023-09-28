@@ -12,7 +12,7 @@ import bullet from '../assets/bulletDark3_outline.png';
 import explosion from '../assets/explosion4.png';
 import box from '../assets/crateWood.png';
 import './globals.css';
-
+import { useSearchParams } from 'next/navigation';
 type PlayerStat = {
   remainingShots: number;
   canShoot: boolean;
@@ -53,7 +53,7 @@ class GameScene extends Phaser.Scene {
     },
   ];
   private countdownText!: Phaser.GameObjects.Text;
-  constructor() {
+  constructor(private numPlayers: number) {
     super('GameScene');
   }
   getRandomPlayersSpawn(numeroDeJogadores: number): number[] {
@@ -144,7 +144,7 @@ class GameScene extends Phaser.Scene {
         },
       ];
     }
-    const totalPlayers = 4;
+    const totalPlayers = this.numPlayers || 4;
     const getPlayersSpawn = this.getRandomPlayersSpawn(totalPlayers);
     for (let i = 1; i <= totalPlayers; i++) {
       const spawnPoint = map.findObject(
@@ -498,13 +498,16 @@ class GameScene extends Phaser.Scene {
 
 export default function GameComponent() {
   const [currentGame, setCurrentGame] = useState<Game | undefined>(undefined);
+  const searchParams = useSearchParams();
+
+  const totalPlayers = searchParams.get('totalPlayers');
   useEffect(() => {
     if (!currentGame?.registry) {
       const game = new Phaser.Game({
         type: Phaser.AUTO,
         width: 640,
         height: 640,
-        scene: GameScene,
+        scene: new GameScene(Number(totalPlayers)),
         parent: 'game-content',
         physics: {
           default: 'arcade',
